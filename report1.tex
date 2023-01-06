@@ -24,6 +24,22 @@
 \usepackage{float}
 
 
+\usepackage[pdf]{graphviz}
+
+%%% Helper code for Overleaf's build system to
+%%% automatically update output drawings when
+%%% code in a \digraph{...} is modified
+\usepackage{xpatch}
+\makeatletter
+\newcommand*{\addFileDependency}[1]{% argument=file name and extension
+  \typeout{(#1)}
+  \@addtofilelist{#1}
+  \IfFileExists{#1}{}{\typeout{No file #1.}}
+}
+\makeatother
+\xpretocmd{\digraph}{\addFileDependency{#2.dot}}{}{}
+
+
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 \newcommand{\noPerp}{\mathop{\not\!\perp\!\!\!\perp} }
@@ -48,7 +64,7 @@
 \begin{document}
 
 \section{提案手法}
-サンプルサイズ$n$，$d$変数のデータセットの$z^n$
+
 
 \begin{outline}
 \1 構造方程式モデル(SEM)
@@ -63,8 +79,26 @@
     \2 GES(Greedy Equivalence Search)\cite{hauser2012characterization}に倣って，空のDAGからスタートしてエッジを付け加える・削除する・反転する操作を行いスコアを最大化させるDAGを求める．
 \end{outline}
 
-\section{実験結果}
+\section{実験と結果}
+人工データを使って提案手法の推定精度を測定した．サンプルサイズ$n$，$d$変数のデータセットの$z^n$を100回生成して，正しく推論された因果グラフの割合を精度とした．$d$には$3,4,5$の場合を試した．
 \subsection{3変数}
+
+\begin{table}[hbtp]
+    \centering
+    \caption{Results on Abalone dataset．}
+    \label{exp_abalone}
+    \begin{tabular}[t]{|c||c|c|}
+    \hline
+    真の因果グラフ & GES & 全探索\\
+    \hline \hline
+    \digraph[scale=0.65]{dig01}{X; Y; Z;} & 100 & 100 \\ \hline
+    \digraph[scale=0.65]{dig02}{X; Y->Z;} & 100 & 100 \\ \hline
+    \digraph[scale=0.65]{dig03}{X->Y; X->Z;} & 100 & 100 \\ \hline
+    \digraph[scale=0.65]{dig04}{Y->X; Z->X;} & 50 & 52 \\ \hline
+    \digraph[scale=0.65]{dig05}{rankdir=LR; X->Y; X->Z; Y->Z;} & 45 & 47 \\ \hline
+    \digraph[scale=0.65]{dig06}{rankdir=LR; Z->X; X->Y;} & 100 & 100 \\ \hline
+    \end{tabular}
+\end{table}
 \subsection{4変数}
 \subsection{5変数}
 

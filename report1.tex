@@ -1,0 +1,75 @@
+\documentclass[dvipdfmx]{jsarticle}
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage[dvipdfmx]{color}
+\usepackage{textcomp}
+\usepackage{xcolor}
+
+
+\usepackage{algorithm}
+\usepackage{ulem}
+\usepackage{url}
+\usepackage{outlines}
+\usepackage{enumitem}
+\usepackage{bm}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsbsy}
+\errorcontextlines=10
+\usepackage{float}
+
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\newcommand{\noPerp}{\mathop{\not\!\perp\!\!\!\perp} }
+%\newcommand{\deffunc}{\mbox{1}\hspace{-0.25em}\mbox{l}}
+\newcommand{\deffunc}{\mathbb{I}}
+
+
+\let\hmmax\undefined %just to remove errors
+\let\bmmax\undefined
+\input{Definitions}
+
+\newtheorem{thm}{Theorem}
+\newtheorem{principle}{Principle}
+\newcommand{\ctext}[1]{\raise0.2ex\hbox{\textcircled{\scriptsize{#1}}}}
+
+
+% \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+%     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+    
+
+
+\begin{document}
+
+\section{提案手法}
+サンプルサイズ$n$，$d$変数のデータセットの$z^n$
+
+\begin{outline}
+\1 構造方程式モデル(SEM)
+    \2 $X = f(\text{Pa}(X)) + E_X (\bmod m_X)$
+        \3 だたし，$E_X$は変数$X$の外生変数であり，変数$X$は$m_X$値の離散変数とする．
+\1 スコア
+    \2 尤度+関数の符号長
+    \2 $- \log P(z^n; M, \hat{\bm{\theta}}(z^n)) + L(f)$
+        \3 ただし，$L(f)$は関数$f: \text{Pa}(X) \to X$の符号長
+        \3 このスコアはdecomposableなスコアである．つまり各ノードを子ノードとして考えることで，全ノードのスコアの和として書ける．
+\1 DAG探索方法
+    \2 GES(Greedy Equivalence Search)\cite{hauser2012characterization}に倣って，空のDAGからスタートしてエッジを付け加える・削除する・反転する操作を行いスコアを最大化させるDAGを求める．
+\end{outline}
+
+\section{実験結果}
+\subsection{3変数}
+\subsection{4変数}
+\subsection{5変数}
+
+
+\bibliography{main}
+\bibliographystyle{tieice}
+
+\end{document}

@@ -67,22 +67,23 @@
 
 
 \begin{outline}
+尤度からなるスコアを最大化させるDAGを探索する，スコアベースのアルゴリズムである．未観測共通原因は考えない．
 \1 構造方程式モデル(SEM)
-    \2 $X = f(\text{Pa}(X)) + E_X (\bmod m_X)$
-        \3 だたし，$E_X$は変数$X$の外生変数であり，変数$X$は$m_X$値の離散変数とする．
+    \2 $X_j = f_j(X_{\textbf{PA}_j}) + E_j (\bmod m_j)$
+        \3 だたし，$\textbf{PA}_j$は変数$X_j$の親変数，$E_j$は変数$X_j$の外生変数であり，変数$X_j$は$m_j$値の離散変数とする．
 \1 スコア
     \2 尤度+関数の符号長
     \2 $- \log P(z^n; M, \hat{\bm{\theta}}(z^n)) + L(f)$
         \3 ただし，$L(f)$は関数$f: \text{Pa}(X) \to X$の符号長
-        \3 このスコアはdecomposableなスコアである．つまり各ノードを子ノードとして考えることで，全ノードのスコアの和として書ける．
-\1 DAG探索方法
-    \2 GES(Greedy Equivalence Search)\cite{hauser2012characterization}に倣って，空のDAGからスタートしてエッジを付け加える・削除する・反転する操作を行いスコアを最大化させるDAGを求める．
+        \3 このスコアはdecomposableなスコアである．つまり各ノードとその親ノードをペアにして計算出来る局所的なスコアに関して，グラフ全体のスコアを全ノードの局所的なスコアの総和として書ける．
+\1 DAGの探索方法
+    \2 GES(Greedy Equivalence Search)\cite{hauser2012characterization}に倣って，空のDAGからスタートしてエッジを付け加える・削除する・反転する操作を行いスコアを極大化させるDAGを求める．
 \end{outline}
 
 \section{実験と結果}
-人工データを使って提案手法の推定精度を測定した．サンプルサイズ$n$，$d$変数のデータセットの$z^n$を100回生成して，正しく推論された因果グラフの割合を精度とした．$d$には$3,4,5$の場合を試した．
+人工データを使って提案手法の推定精度を測定することで，提案手法がデータを生成した因果関係を同定する性能を実験的に検証した．サンプルサイズ$n$，$d$変数のデータセットの$z^n$を100回生成して，正しく推論された因果グラフの割合を精度とした．$d$には$3,4,5$の場合を試した．
 \subsection{3変数}
-
+3変数$X_1, X_2, X_3$
 \begin{table}[hbtp]
     \centering
     \caption{Results on Abalone dataset．}
@@ -91,12 +92,12 @@
     \hline
     真の因果グラフ & GES & 全探索\\
     \hline \hline
-    \digraph[scale=0.65]{dig01}{X; Y; Z;} & 100 & 100 \\ \hline
-    \digraph[scale=0.65]{dig02}{X; Y->Z;} & 100 & 100 \\ \hline
-    \digraph[scale=0.65]{dig03}{X->Y; X->Z;} & 100 & 100 \\ \hline
-    \digraph[scale=0.65]{dig04}{Y->X; Z->X;} & 50 & 52 \\ \hline
-    \digraph[scale=0.65]{dig05}{rankdir=LR; X->Y; X->Z; Y->Z;} & 45 & 47 \\ \hline
-    \digraph[scale=0.65]{dig06}{rankdir=LR; Z->X; X->Y;} & 100 & 100 \\ \hline
+    \digraph[scale=0.65]{dig01}{X1; X2; X3;} & 100 & 100 \\ \hline
+    \digraph[scale=0.65]{dig02}{X1; X2->X3;} & 100 & 100 \\ \hline
+    \digraph[scale=0.65]{dig03}{X1->X2; X1->X3;} & 100 & 100 \\ \hline
+    \digraph[scale=0.65]{dig04}{X2->X1; X3->X1;} & 50 & 52 \\ \hline
+    \digraph[scale=0.65]{dig05}{rankdir=LR; X1->X2; X1->X3; X2->X3;} & 45 & 47 \\ \hline
+    \digraph[scale=0.65]{dig06}{rankdir=LR; X3->X1; X1->X2;} & 100 & 100 \\ \hline
     \end{tabular}
 \end{table}
 \subsection{4変数}

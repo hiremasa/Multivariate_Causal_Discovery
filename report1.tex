@@ -79,12 +79,18 @@
 \1 構造方程式モデル(SEM)
     \2 $X_j = f_j(X_{\textbf{PA}_j}) + E_j (\bmod m_j)$
         \3 だたし，$X_{\textbf{PA}_j}$は変数$X_j$の親変数，$E_j$は変数$X_j$の外生変数であり，変数$X_j$及び外生変数$E_j$は$m_j$値の離散変数とし，$f_j$は関数$f_j: \mathcal{X}_{\textbf{Pa}_{j}} \to \mathcal{X}_j$である．
-\1 スコア
-    \2 尤度+関数の符号長
-    \2 $- \log P(z^n; M, \hat{\bm{\theta}}(z^n)) + L(f)$
-        \3 ただし，$L(f)$は関数$f_j: \{\mathcal{X}_{\textbf{Pa}_{j}}\} \to \mathcal{X}_j$の符号長$L(f_j)$を$j$について総和を取ったもの．
-        \3 尤度も$j$に関する総和で書ける．
-        \3 このスコアはdecomposableなスコアである．つまりグラフ全体のスコアは，各ノードとその親ノードをペアにして計算出来る局所的なスコアの総和として書ける．
+\1 スコア $\mathcal{L}(z^n; G)$
+    \2 $\mathcal{L}(z^n; G)$= 尤度+関数の符号長
+        \3 ただし，$G$は因果グラフ
+    \2 $\mathcal{L}(z^n; G) = - \log P(z^n; G, \hat{\bm{\theta}}(z^n)) + L(f)$
+        \3 ただし，$ \hat{\bm{\theta}}(z^n)$はデータ$z^n$の下での因果グラフ$G$のパラメータの最尤推定値，$L(f)$はグラフ$G$に付随するSEMが持つ関数$f_j: \{\mathcal{X}_{\textbf{Pa}_{j}}\} \to \mathcal{X}_j$全体の符号長．
+    \2 このスコア$\mathcal{L}(z^n; G)$はdecomposableなスコアである．つまりグラフ全体のスコアは，各ノードとその親ノードをペアにして計算出来る局所的なスコアの総和として次のように書ける．
+        \3 $\mathcal{L}(z^n; G) = \sum_{j} \{- \log P(x_j^n; G_{j}, \bm{\theta}(x^j, x_{\textbf{PA}_j})) + L(f_j)\}$ 
+            \4 ただし，$G_j$はノード$X_j$とその親を含む$G$の部分グラフ，$\bm{\theta}(x^j, x_{\textbf{PA}_j})$はデータ$x_j^n$と$x_{\textbf{PA}_j}^n$の下でのグラフ$G_j$のパラメータの最尤推定値
+        \3 $L(f)$は関数$f_j: \{\mathcal{X}_{\textbf{Pa}_{j}}\} \to \mathcal{X}_j$の符号長$L(f_j)$を$j$について総和を取ったものになる．
+        \3 尤度も$j$に関する総和で書ける
+        
+
 \1 DAGの探索方法
     \2 GES(Greedy Equivalence Search)\cite{hauser2012characterization}に倣って，空のDAGからスタートしてエッジを付け加える・削除する・反転する操作を行いスコアを極小化させるDAGを求める．
 \end{outline}

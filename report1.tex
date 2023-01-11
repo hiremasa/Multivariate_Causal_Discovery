@@ -53,7 +53,7 @@
 \newcommand{\noPerp}{\mathop{\not\!\perp\!\!\!\perp} }
 %\newcommand{\deffunc}{\mbox{1}\hspace{-0.25em}\mbox{l}}
 \newcommand{\deffunc}{\mathbb{I}}
-
+\newcommand{\red}[1]{\textcolor{red}{#1}}
 
 \let\hmmax\undefined %just to remove errors
 \let\bmmax\undefined
@@ -133,14 +133,41 @@
     \end{tabular}
 \end{table}
 \subsection{4変数}
-複雑な因果関係を同定する性能を確かめるために，下のDAGの因果関係から4変数$X_1, X_2, X_3, X_4$を先の実験のSEMと同様に生成した．サンプルサイズは$n=1000$とした．推定精度は\textbf{48 \%}であった．
+複雑な因果関係を同定する性能を確かめるために，下のDAGの因果関係から4変数$X_1, X_2, X_3, X_4$を先の実験のSEMと同様に生成した．サンプルサイズは$n=1000$とした．推定精度は\textbf{48 \%}，\red{$\text{SHD} = 0.620 \pm 0.660$}であった．
 
 \digraph[scale=0.65]{dig07}{rankdir=LR; X1->X2; X1->X3; X3->X4; X3->X2}
 
 \subsection{5変数}
-原因を3つ持つ複雑な因果関係を同定する性能を確かめるために，下のDAGの因果関係から5変数$X_1, X_2, X_3, X_4, X_5$を3変数の実験のSEMと同様に生成した．$n=1000$のとき推定精度は\textbf{0 \%}であり，$n=10000$のとき推定精度は\textbf{57 \%}であった．
-
+原因を3つ持つ複雑な因果関係を同定する性能を確かめるために，下のDAGの因果関係から5変数$X_1, X_2, X_3, X_4, X_5$を3変数の実験のSEMと同様に生成した．$n=1000$のとき推定精度は\textbf{0 \%}，\red{$\text{SHD} = 2.710 \pm 0.454$}であり，$n=10000$のとき推定精度は\textbf{57 \%}であった．
 \digraph[scale=0.65]{dig08}{X1->X4; X2->X4; X3->X4;  X4->X5;}
+
+\section{ディスカッション}
+\subsection{計算上のボトルネックは？}
+5変数$n=5000$のときのPythonプログラム実行時間をプロファイルした結果を図\ref{fig:bottleneck_1}と図\ref{fig:bottleneck_2}に示す．図\ref{fig:bottleneck_1}はmain関数全体のうち，どのstepが主なプロセス時間を占めるかを下流に示しており，turning stepが他2つより主要であることが分かる．図\ref{fig:bottleneck_2}では，図\ref{fig:bottleneck_1}のturning stepの中でのプロセス時間を大きく専有する処理を調べ，その結果\textbf{回帰関数の推定が最大のボトルネックである}ことが分かった．
+
+\begin{figure}[t]
+ \begin{center}
+  \includegraphics[width=0.8\linewidth,angle=0]{images/report1/report1_1.png}
+  \caption{main関数全体の中でのプロセスの占める割合 \label{fig:bottleneck_1}}
+ \end{center}
+\end{figure}
+
+
+\begin{figure}[t]
+ \begin{center}
+  \includegraphics[width=0.8\linewidth,angle=0]{images/report1/report1_2.png}
+  \caption{turning stepの中での各関数の占める割合 \label{fig:bottleneck_2}}
+ \end{center}
+\end{figure}
+
+\subsection{他分かったこと}
+\begin{outline}
+\1 delete/turning stepはいらない可能性がある
+    \2 turningを除いてDAGを探索したところ表\ref{3vars_n=1000}(3変数$n=1000$)の下から2番目のモデルで1回多く間違えるだけで，その他の実験設定では精度に変化が無かった．一方で計算時間は定数倍早くなった．
+\1 deleteを除いてスコアが上がることは無い．
+    \2 DAGの探索においてはスコアが上がる有効辺をinsertした後deleteしてもスコアが下がることはない
+  
+\end{outline}
 
 
 \bibliography{main}

@@ -1,0 +1,124 @@
+\documentclass[dvipdfmx]{jsarticle}
+\usepackage[dvipdfmx]{graphicx}
+	\textheight 25.cm
+	\textwidth 15cm
+	\hoffset -2cm
+	\voffset -2cm
+	\oddsidemargin 3.0cm
+	\evensidemargin 2.0cm
+	\pagestyle{headings}
+	
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage[dvipdfmx]{color}
+\usepackage{textcomp}
+\usepackage{xcolor}
+
+
+\usepackage{algorithm}
+\usepackage{ulem}
+\usepackage{url}
+\usepackage{outlines}
+\usepackage{enumitem}
+\usepackage{bm}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsbsy}
+\errorcontextlines=10
+\usepackage{float}
+
+
+\usepackage[pdf]{graphviz}
+
+%%% Helper code for Overleaf's build system to
+%%% automatically update output drawings when
+%%% code in a \digraph{...} is modified
+\usepackage{xpatch}
+\makeatletter
+\newcommand*{\addFileDependency}[1]{% argument=file name and extension
+  \typeout{(#1)}
+  \@addtofilelist{#1}
+  \IfFileExists{#1}{}{\typeout{No file #1.}}
+}
+\makeatother
+\xpretocmd{\digraph}{\addFileDependency{#2.dot}}{}{}
+
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\newcommand{\noPerp}{\mathop{\not\!\perp\!\!\!\perp} }
+%\newcommand{\deffunc}{\mbox{1}\hspace{-0.25em}\mbox{l}}
+\newcommand{\deffunc}{\mathbb{I}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+
+\let\hmmax\undefined %just to remove errors
+\let\bmmax\undefined
+\input{Definitions}
+
+\newtheorem{thm}{Theorem}
+\newtheorem{principle}{Principle}
+\newcommand{\ctext}[1]{\raise0.2ex\hbox{\textcircled{\scriptsize{#1}}}}
+
+
+% \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+%     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+    
+
+
+\begin{document}
+\section{MMHC (Max-Min Hill-Climbing) Algorithm}
+Constraint-basedかつScore-basedなDAG探索アルゴリズム．独立性検定を使って親・子ノードの候補を列挙し，DAGの探索空間を減らし，そこから最適なスコアを持つDAGをサーチする．
+
+\begin{algorithm}[t]                      
+\caption{MMPC (Max-min Parents and Children) Algorithm}
+\label{alg:optimize_regression}                          
+% \begin{spacing}{1.13}
+\begin{algorithmic}[1]
+\REQUIRE Input the dataset $D$, variable set $V=\{ X_1, X_2, ..., X_n \}$
+\ENSURE CPC : The candidate parents and children (CPC) for each variable from a given data set
+\FOR {$i \in \{1, ..., n\}$}
+    \STATE \text{Target Variable $X_i$, and $\text{CPC}_i=\phi$}
+    \FOR {$V_j \in V \backslash \{X_i, \text{CPC}_i\}$}
+        \STATE \text{$//$ caluculate the maximum minimum association value of $X_j$ and $X_j$ under the condition $\text{CPC}_i$}
+        \STATE $// \ assoc X_j = MinAssoc(X_j, X_i | CPC_i) = \min_{S \subseteq CPC_i} Assoc(X_j, X_i | S)$
+        \STATE $F = \argmax_{X_j \in V} MinAssoc(X_j, X_i | CPC_i)$
+        \STATE $assoc F = \max_{X_j \in V} MinAssoc(X_j, X_i | CPC_i)$
+        \IF{$assocF=0 \neq 0 $}
+            \STATE $\text{CPC}_i= \text{CPC}_i \cup F$
+        \ELSE
+            \STATE $\text{break}$
+        \ENDIF
+    \ENDFOR
+    \FOR {$X_i \in \text{CPC}_i\}$}
+        \IF{$\exists S \subseteq \text{CPC}_i \text{ s.t. } assoc(X_j, X_i | S) = 0$ }
+            \STATE  $\text{CPC}_i= \text{CPC}_i \backslash \{X_j \}$
+        \ENDIF
+    \RETURN $\text{CPC}_i$
+    \ENDFOR
+\ENDFOR
+\end{algorithmic}
+% \end{spacing}
+\end{algorithm}
+
+
+\begin{algorithm}[t]                      
+\caption{MMHC (Max-Min Hill-Climbing) Algorithm}
+\label{alg:MMHC}                          
+% \begin{spacing}{1.13}
+\begin{algorithmic}[1]
+\REQUIRE Input the dataset $D$, variable set $V=\{ X_1, X_2, ..., X_n \}$, and scoring function
+\ENSURE The Bayesian network structure 
+\STATE \text{Call the MMPC algorithm to return the parents and children set} $\text{CPC}_i (i=1, 2, ..., n)$ of each variable.
+\STATE \text{Starting from an empty graph perform Greedy Hill-Climbing with operators add-edge, }\\
+\text{delete-edge, reverse-edge. Only try operator add-edge $Y \to X $ if $Y \in \text{CPC}_X$.} 
+\RETURN \text{The Bayesian network structure found.}
+\end{algorithmic}
+% \end{spacing}
+\end{algorithm}
+
+
+\end{document}

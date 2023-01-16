@@ -1,0 +1,192 @@
+\documentclass[dvipdfmx]{jsarticle}
+\usepackage[dvipdfmx]{graphicx}
+	\textheight 25.cm
+	\textwidth 15cm
+	\hoffset -2cm
+	\voffset -2cm
+	\oddsidemargin 3.0cm
+	\evensidemargin 2.0cm
+	\pagestyle{headings}
+	
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage[dvipdfmx]{color}
+\usepackage{textcomp}
+\usepackage{xcolor}
+
+
+\usepackage{algorithm}
+\usepackage{ulem}
+\usepackage{url}
+\usepackage{outlines}
+\usepackage{enumitem}
+\usepackage{bm}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsbsy}
+\errorcontextlines=10
+\usepackage{float}
+
+
+\usepackage[pdf]{graphviz}
+
+%%% Helper code for Overleaf's build system to
+%%% automatically update output drawings when
+%%% code in a \digraph{...} is modified
+\usepackage{xpatch}
+\makeatletter
+\newcommand*{\addFileDependency}[1]{% argument=file name and extension
+  \typeout{(#1)}
+  \@addtofilelist{#1}
+  \IfFileExists{#1}{}{\typeout{No file #1.}}
+}
+\makeatother
+\xpretocmd{\digraph}{\addFileDependency{#2.dot}}{}{}
+
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\newcommand{\noPerp}{\mathop{\not\!\perp\!\!\!\perp} }
+%\newcommand{\deffunc}{\mbox{1}\hspace{-0.25em}\mbox{l}}
+\newcommand{\deffunc}{\mathbb{I}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+
+\let\hmmax\undefined %just to remove errors
+\let\bmmax\undefined
+\input{Definitions}
+
+\newtheorem{thm}{Theorem}
+\newtheorem{principle}{Principle}
+\newcommand{\ctext}[1]{\raise0.2ex\hbox{\textcircled{\scriptsize{#1}}}}
+
+
+% \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+%     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+    
+
+
+\begin{document}
+
+\section{提案手法}
+
+
+\begin{outline}
+尤度からなるスコアを最小化させるDAGを探索する，スコアベースのアルゴリズムである．未観測共通原因は考えない．
+\1 構造方程式モデル(SEM)
+    \2 以下の2通りのSEMを試す．
+    \2 \red{ANM (Additive Noise Model)}; $X_j = f_j(X_{\textbf{PA}_j}) + E_j (\bmod m_j)$
+        \3 ただし，$X_{\textbf{PA}_j}$は変数$X_j$の親変数，$E_j$は変数$X_j$の外生変数であり，変数$X_j$及び外生変数$E_j$は$m_j$値の離散変数とし，$f_j$は関数$f_j: \mathcal{X}_{\textbf{Pa}_{j}} \to \mathcal{X}_j$である．
+    \2 \red{CAM (Causal Additive Model)}; $X_j = \sum_{k \in \textbf{PA}_j}f_{j, k}(X_k) + E_j (\bmod m_j)$
+        \3 ただし，$ \textbf{PA}_j$は変数$X_j$の親のインデックス，$f_{j, k}$は関数$f: \mathcal{X}_k \to \mathcal{X}_j$である．
+\1 スコア $\mathcal{L}(z^n; G)$
+    \2 $\mathcal{L}(z^n; G)$= 尤度+関数の符号長
+        \3 ただし，$G =  (<\mathbf{V, E}>, \mathcal{\mathbf{\Theta}})$は因果グラフ
+    \2 $\mathcal{L}(z^n; G) = - \log P(z^n; G, \hat{\bm{\theta}}(z^n)) + L(f)$
+        \3 ただし，$ \hat{\bm{\theta}}(z^n)$はデータ$z^n$の下での因果グラフ$G$のパラメータの最尤推定値，$L(f)$はグラフ$G$に付随するSEMが持つ関数$f_j: \{\mathcal{X}_{\textbf{Pa}_{j}}\} \to \mathcal{X}_j$全体の符号長．
+    \2 このスコア$\mathcal{L}(z^n; G)$はdecomposableなスコアである．つまりグラフ全体のスコアは，各ノードとその親ノードをペアにして計算出来る局所的なスコアの総和として次のように書ける．
+        \3 $\mathcal{L}(z^n; G) = \sum_{j} \{- \log P(x_j^n; G_{j}, \bm{\theta}(x^j, x_{\textbf{PA}_j})) + L(f_j)\}$ 
+            \4 ただし，$G_j$はノード$X_j$とその親を含む$G$の部分グラフ，$\bm{\theta}(x^j, x_{\textbf{PA}_j})$はデータ$x_j^n$と$x_{\textbf{PA}_j}^n$の下でのグラフ$G_j$のパラメータの最尤推定値
+        \3 $L(f)$は関数$f_j: \{\mathcal{X}_{\textbf{Pa}_{j}}\} \to \mathcal{X}_j$の符号長$L(f_j)$を$j$について総和を取ったものになる．
+            \4 \red{ANM}の場合$L(f_j) = (\Pi_{k \in \textbf{Pa}_{j}} m_k -1 ) \log m_j$
+            \4 \red{CAM}の場合$L(f_j) = \sum_{k \in \textbf{Pa}_{j}}( m_k -1 ) \log m_j$
+        \3 尤度も$j$に関する総和で書ける
+        
+
+\1 DAGの探索方法
+    \2 GES(Greedy Equivalence Search)\cite{hauser2012characterization}に倣って，空のDAGからスタートしてエッジを付け加える・削除する・反転する操作を行いスコアを極小化させるDAGを求める．
+\end{outline}
+
+\section{実験と結果}
+\red{実験設定は前回の報告と同じで，今回はSEMがANMとCAMの場合の精度を比較を行った．}人工データを使って提案手法の推定精度を測定することで，提案手法がデータを生成した因果関係を同定する性能を実験的に検証した．サンプルサイズ$n$，$p$変数のデータセット$z^n$を100回生成して，正しく推論された因果グラフの割合を精度とした．$p$には$3,4,5$の場合を試した．また，以降の実験ではすべての離散変数$X$は10値の離散変数に設定した．
+\subsection{3変数}
+3変数$X_1, X_2, X_3$間のすべてのDAG(ループの無い因果関係)25通りのうち，対称性の観点からユニークなグラフ6通りを代表して選び，各DAGに対応して，加法誤差モデル$X_j = \sum_{k \in \textbf{PA}_j}f_{j, k}(X_k) + E_j (\bmod m_j)(j = 1, 2, 3)$により3変数$X_1, X_2, X_3$を生成させた．ここで$f_{j, k}$は関数$f: \mathcal{X}_k \to \mathcal{X}_j$であり，外生変数$E_j$は$K=10$値カテゴリカル分布$Cat(K=10, \bm{\pi})$から生成した．カテゴリカル分布のパラメータ$\bm{\pi}$は，データセット作成のたびに$\sum_i \pi_i = 1$の制約のもとでランダムに生成した．
+
+表\ref{3vars_n=1000}に真の因果グラフとその推定精度の対応表を示す．推定精度には25通り全ての符号長を計算して最小符号長をもたらすDAGを選んだ「全探索」手法と，GESを用いたDAGの探索アルゴリズムを用いた「GES」の2つを載せている．直接の親変数を2つ持つような変数がある場合には推定精度が50\%前後となった．3変数の場合には，全探索した場合に比べてGESの精度は高々2\%の低下であった．
+
+サンプルサイズを$n=10000$として，同様の実験を行った際の実験結果を表\ref{3vars_n=10000}に示す．一致性が確認できた．
+
+\begin{table}[hbtp]
+    \centering
+    \caption{Results on 3 variables with $n=1000$.}
+    \label{3vars_n=1000}
+    \begin{tabular}[t]{|c||c|c|c|}
+    \hline
+    真の因果グラフ & ANM 全探索 & ANM GES & CAM GES\\
+    \hline \hline
+    \digraph[scale=0.65]{dig01}{X1; X2; X3;} & 100 \% & 100 \% & 100 \% \\ \hline
+    \digraph[scale=0.65]{dig02}{X1; X2->X3;} & 100 \% & 100 \% & 100 \% \\ \hline
+    \digraph[scale=0.65]{dig03}{X1->X2; X1->X3;} & 100 \% & 100 \% & 88 \% \\ \hline
+    \digraph[scale=0.65]{dig04}{X2->X1; X3->X1;} & 52 \% & 50 \% & 81 \% \\ \hline
+    \digraph[scale=0.65]{dig05}{rankdir=LR; X1->X2; X1->X3; X2->X3;} & 47 \% & 45 \% & 80 \% \\ \hline
+    \digraph[scale=0.65]{dig06}{rankdir=LR; X3->X1; X1->X2;} & 100 \% & 100 \% & 99 \% \\ \hline
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[hbtp]
+    \centering
+    \caption{Results on 3 variables with $n=10000$.}
+    \label{3vars_n=10000}
+    \begin{tabular}[t]{|c||c|c|c|}
+    \hline
+    真の因果グラフ & ANM 全探索 & ANM GES & CAM GES\\
+    \hline \hline
+    \digraph[scale=0.65]{dig01}{X1; X2; X3;} & 100 \% & 100 \% & 100 \% \\ \hline
+    \digraph[scale=0.65]{dig02}{X1; X2->X3;} & 100 \% & 100 \% & 100 \% \\ \hline
+    \digraph[scale=0.65]{dig03}{X1->X2; X1->X3;} & 100 \% & 100 \% & 99 \% \\ \hline
+    \digraph[scale=0.65]{dig04}{X2->X1; X3->X1;} & 100 \% & 100 \% & 100 \% \\ \hline
+    \digraph[scale=0.65]{dig05}{rankdir=LR; X1->X2; X1->X3; X2->X3;} & 100 \% & 100 \% & 99 \% \\ \hline
+    \digraph[scale=0.7]{dig06}{rankdir=LR; X3->X1; X1->X2;} & 100 \% & 100 \% & 100 \% \\ \hline
+    \end{tabular}
+\end{table}
+\subsection{4変数}
+複雑な因果関係を同定する性能を確かめるために，下のDAGの因果関係から4変数$X_1, X_2, X_3, X_4$を先の実験のSEMと同様に生成した．サンプルサイズは$n=1000$とした．\red{実行結果を表\ref{4vars}に示す}．
+
+\digraph[scale=0.65]{dig07}{rankdir=LR; X1->X2; X1->X3; X3->X4; X3->X2}
+
+\begin{table}[hbtp]
+    \centering
+    \caption{Results on 4 variables with $n=1000$.}
+    \label{4vars}
+    \begin{tabular}[t]{|c||c|c|c|}
+    \hline
+    SEM  & 精度 & SHD & 実行時間 (s/iter) \\
+    \hline \hline
+    ANM & 48 \% & $0.620 \pm 0.660$ &   16.64\\ \hline
+    CAM & 79 \% & $ 0.380 \pm 0.822$ & 7.71 \\ \hline
+    \end{tabular}
+\end{table}
+
+\subsection{5変数}
+原因を3つ持つ複雑な因果関係を同定する性能を確かめるために，下のDAGの因果関係から5変数$X_1, X_2, X_3, X_4, X_5$を3変数の実験のSEMと同様に生成した．\red{実行結果を表\ref{5vars}に示す}．
+
+\digraph[scale=0.65]{dig08}{X1->X4; X2->X4; X3->X4;  X4->X5;}
+
+\begin{table}[hbtp]
+    \centering
+    \caption{Results on 5 variables with $n=1000$.}
+    \label{5vars}
+    \begin{tabular}[t]{|c||c|c|c|} 
+    \hline 
+    \multicolumn{4}{|c|}{$n=1000$} \\
+    \hline
+    SEM  & 精度 & SHD & 実行時間 (s/iter) \\
+    \hline \hline
+    ANM & 0 \% & $2.710 \pm 0.454$ &  9.62 \\ \hline
+    CAM & 10 \% & $ 2.430 \pm 1.003$ & 7.05 \\ \hline \hline
+    \multicolumn{4}{|c|}{$n=10000$} \\ \hline
+    SEM  & 精度 & SHD & 実行時間 (s/iter) \\ \hline \hline
+    ANM & 57 \% &  &  1287 \\ \hline
+    CAM & 92 \% & $0.220 \pm 0.769$ & 418 \\ \hline
+    \end{tabular}
+\end{table}
+
+
+\bibliography{main}
+\bibliographystyle{tieice}
+
+\end{document}

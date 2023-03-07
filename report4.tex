@@ -1,6 +1,6 @@
 \documentclass[dvipdfmx]{jsarticle}
 \usepackage[dvipdfmx]{graphicx}
-	\textheight 25.cm
+	\textheight 27.cm
 	\textwidth 15cm
 	\hoffset -2cm
 	\voffset -2cm
@@ -78,9 +78,9 @@
 \begin{outline}
 \1 前回の報告
    \2 離散2変数を扱ったBigDataの論文を多変数に拡張した．
-      \3 3〜5変数の因果関係の同定: 未観測共通原因が無いという仮定で貪欲に(エッジをadd/delete/turnして)DAGを探索することを通してデータの記述長を最小化するようなモデル手法を実装(実験)した．
+      \3 3〜5変数の因果関係の推定: 未観測共通原因が無いという仮定で貪欲に(エッジをadd/delete/turnして)DAGを探索することを通してデータの記述長を最小化するようなモデル手法を実装(実験)した．
 \1 前回のミーティングにおけるフィードバック
-   \2 MDL原理を使っているのだから，未観測共通原因の存在が疑われるモデルを受け皿として用意してあげるのがいいのでは？
+   \2 MDL原理を使っているのだから，未観測共通原因の存在が疑われるモデルを受け皿として用意してあげた方がいいのでは？
 % \1 構造方程式モデル(SEM)
 %     \2 以下の2通りのSEMを試す．
 %     \2 \red{ANM (Additive Noise Model)}; $X_j = f_j(X_{\textbf{PA}_j}) + E_j (\bmod m_j)$
@@ -110,20 +110,79 @@
 \section{考えたこと}
 \begin{outline}
 \1 問題設定
-   \2 手元にある複数の変数の中から，\textbf{特に着目したいターゲット変数$Y$の周りの因果関係}を推測する問題を考える
+   \2 手元にある複数の変数の中から，\textbf{特に着目したいターゲット変数$Y$の周りの因果関係}を推測したい，という立場に立って考える．
        \3 ($Y$の直接上流だけなのか直接上流かつ下流なのか，もっと広い範囲なのかは未定)
+    \2 ここでのモチベーションは，$Y$に関わってくる未観測共通原因$C$が存在すれば，それを検知したい．
    \2 そこで，まず$C$を考えずにモデル選択してDAGを求めて，それに$C$を付け加えたDAGと再度モデル選択するアプローチを考える
 
-\vspace{60mm}
+\vspace{50mm}
 
 \1 知りたいこと
    \2 どれくらい細かく未観測共通原因$C$を入れたモデル選択が行えるのか
       \3 $Y$に纏わる$C$の取りやすいものと取りにくいものは何？
-      \3 たとえ高々5変数くらいでしか動かなくとも，我々の手法の扱いやすい範囲でモデル選択することができれば，という展望
+      \3 たとえ高々5変数くらいでしか動かなくとも，我々の手法の扱いやすい範囲でモデル選択することができれば，という展望があった
+    \2 $Y$に纏わる$C$の場所ごとに考えたDAGのSEMが持つ自由度が何次元なのか
+        \3 自由度が制限されて，かつその値が分かれば，$C$を細かく入れたDAGのモデル選択が行えるはず
+
+\1 \red{本稿では}
+    \2 \textcircled{2}のDAGのSEMを(1)ANMと(2)一般形で考えた場合のSEMの自由度を考えた．
+        \3 (1)ANMの自由度が制限されて，その大きさが分かれば，$C$が他の場所に関わってくるDAGの場合でも記述長が計算できそうだという目論み
+\begin{figure}[htbp]
+  \centering
+  \begin{minipage}{0.4\textwidth}
+    \begin{equation}
+      \left\{
+      \begin{aligned}
+        A &= E_A \\
+        B &= f_{B}(C, E_B) \\
+        \red{Y} &\red{= f_{Y}(A, B, C) + E_Y}
+      \end{aligned}
+      \right.
+    \end{equation}
+  \end{minipage}
+  \hspace{20mm}
+  \begin{minipage}{0.4\textwidth}
+    \begin{equation}
+      \left\{
+      \begin{aligned}
+        A &= E_A \\
+        B &= f_{B}(C, E_B) \\
+        \red{Y} &\red{= f_{Y}(A, B, C,  E_Y)}
+      \end{aligned}
+      \right.
+    \end{equation}
+  \end{minipage}
+\end{figure}
+\end{outline}
+
+\newpage
+\section{暫定的な結論}
+\begin{outline}
+\1 (1)ANMの場合は
+    \2 \textbf{自由度は制限される}．
+        \3 $\{P(A, B, Y; \theta \in \Theta^{m_A  m_B  m_Y - 1})\} \supset \{P(A, B, Y | \ \text{(1)のSEM}\}$
+    \2 \textbf{何次元の自由度なのかは分かっていない}
+        \3 BigDataのときの話を継承するなら($C$の纏わる変数の生成仮定に何の仮定も置かない)，$Y$をANMとして考える特別な理由はない？
+
+\1　（2）一般形の場合は
+    \2 任意の同時分布を表現してまう．
+        \3 $\{P(A, B, Y; \theta \in \Theta^{m_A  m_B  m_Y - 1})\} = \{P(A, B, Y | \ \text{(2)のSEM}\}$
+    \2 SEMとして(2)一般形を採用した場合，受け皿は一つだけになってしまう．
+        \3 \textcircled{4}「どこに$C$があるのかは分からないが，どこかに$C$は存在してそうだ」という推論結果になる
+\end{outline}
+
+\section{他に議論しなければならないこと}
+\begin{outline}
+\1 Global(すべての変数間の因果関係の推定) vs. Local(特定のターゲット$Y$周りのみの因果関係の推定)
+\1 Local (\cite{yu2020causality})にやるなら
+    \2 $Y$の直接原因だけを推定する方向 (例: \cite{zhang2021combined})
+    \2 $Y$の直接原因と直接結果を推定する方向 (例: \cite{gao2015local})
+
 \end{outline}
 
 
-\section{暫定的な結論}
+
+
 
 % \section{実験と結果}
 % \red{実験設定は前回の報告と同じで，今回はSEMがANMとCAMの場合の精度を比較を行った．}人工データを使って提案手法の推定精度を測定することで，提案手法がデータを生成した因果関係を同定する性能を実験的に検証した．サンプルサイズ$n$，$p$変数のデータセット$z^n$を100回生成して，正しく推論された因果グラフの割合を精度とした．$p$には$3,4,5$の場合を試した．また，以降の実験ではすべての離散変数$X$は10値の離散変数に設定した．
@@ -211,7 +270,7 @@
 % \end{table}
 
 
-% \bibliography{main}
-% \bibliographystyle{tieice}
+\bibliography{main}
+\bibliographystyle{tieice}
 
 \end{document}
